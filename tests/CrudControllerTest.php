@@ -116,6 +116,33 @@ class CrudControllerTest extends TestCase
         $this->assertSame('other.name', $this->call($this->controller, 'qualifyRelatedColumn', [$model, 'other.name']));
     }
 
+    /*==================== resolveOrderDirection ====================*/
+
+    public function testResolveOrderDirectionDefaultsToAscForMissingOrNullDir()
+    {
+        // $order['dir'] comes straight from the client; a malformed request can
+        // omit it. strtolower(null) is deprecated since PHP 8.1, so this must
+        // not pass null through, and must keep falling back to "asc".
+        $this->assertSame('asc', $this->call($this->controller, 'resolveOrderDirection', [[]]));
+        $this->assertSame('asc', $this->call($this->controller, 'resolveOrderDirection', [['dir' => null]]));
+    }
+
+    public function testResolveOrderDirectionRecognisesDescCaseInsensitively()
+    {
+        $this->assertSame('desc', $this->call($this->controller, 'resolveOrderDirection', [['dir' => 'desc']]));
+        $this->assertSame('desc', $this->call($this->controller, 'resolveOrderDirection', [['dir' => 'DESC']]));
+        $this->assertSame('asc', $this->call($this->controller, 'resolveOrderDirection', [['dir' => 'asc']]));
+    }
+
+    public function testResolveOrderDirectionFeedsApplyOrderToQueryTheSameAsBefore()
+    {
+        $direction = $this->call($this->controller, 'resolveOrderDirection', [['dir' => 'desc']]);
+        $query     = $this->query();
+        $this->call($this->controller, 'applyOrderToQuery', [$query, 'name', $direction]);
+
+        $this->assertStringContainsString('order by "name" desc', $query->toSql());
+    }
+
     /*==================== applyOrderToQuery ====================*/
 
     public function testApplyOrderToQueryOrdersALocalColumn()
@@ -247,6 +274,32 @@ class CrudControllerTest extends TestCase
 
         $this->assertFalse($this->call($this->controller, 'applyFiltersToQuery', [$query, 'nope']));
         $this->assertSame([], $query->getBindings());
+    }
+
+    /*==================== setField / enum guard ====================*/
+
+    public function testSetFieldNormalizesAMissingNullOrNonArrayEnumarrayWithoutThrowing()
+    {
+        // count() on a non-array is a fatal TypeError on PHP 8, so a bad
+        // enumarray must never reach it; it is normalized to [] instead of
+        // aborting, since an enum with no options historically just rendered
+        // an empty <select> and the application kept working.
+        $cases = [
+            'missing'   => ['field' => 'status_missing', 'type' => 'enum'],
+            'null'      => ['field' => 'status_null', 'type' => 'enum', 'enumarray' => null],
+            'non-array' => ['field' => 'status_string', 'type' => 'enum', 'enumarray' => 'not-an-array'],
+        ];
+
+        foreach ($cases as $case) {
+            $this->controller->setField($case);
+        }
+
+        $fields = $this->read($this->controller, 'fields');
+        $byField = array_column($fields, 'enumarray', 'field');
+
+        $this->assertSame([], $byField['status_missing']);
+        $this->assertSame([], $byField['status_null']);
+        $this->assertSame([], $byField['status_string']);
     }
 
     /*==================== downLevel ====================*/
