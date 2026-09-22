@@ -17,6 +17,7 @@ class CrudController extends BaseController
     private $showExport   = true;
     private $showSearch   = true;
     private $stateSave    = true;
+    private $stateDuration = 0;
     private $responsive   = true;
     private $layout       = 'layouts.app';
     private $perPage      = 50;
@@ -35,6 +36,24 @@ class CrudController extends BaseController
     private $validations  = [];
     private $ignoreFields = ['_token'];
     private $breadcrumb   = ['mostrar' => true, 'breadcrumb' => []];
+
+    public function __construct()
+    {
+        $this->stateDuration = $this->config('csgtcrud.stateDuration', 0);
+    }
+
+    /**
+     * Lee un valor de configuracion del paquete de forma segura.
+     *
+     * Se envuelve el helper global `config()` porque el paquete se instala en
+     * apps Laravel completas (donde siempre existe), pero el suite de tests de
+     * este repo arranca deliberadamente sin `illuminate/foundation` para poder
+     * correr sin base de datos ni aplicacion completa (ver tests/TestCase.php).
+     */
+    private function config($aClave, $aDefault = null)
+    {
+        return function_exists('config') ? config($aClave, $aDefault) : $aDefault;
+    }
 
     public function setup(Request $request)
     {
@@ -55,6 +74,7 @@ class CrudController extends BaseController
             ->with('layout', $this->layout)
             ->with('breadcrumb', $breadcrumb)
             ->with('stateSave', $this->stateSave)
+            ->with('stateDuration', $this->stateDuration)
             ->with('showExport', $this->showExport)
             ->with('showSearch', $this->showSearch)
             ->with('responsive', $this->responsive)
@@ -1113,6 +1133,11 @@ class CrudController extends BaseController
     public function setResponsive($aResponsive)
     {
         $this->responsive = $aResponsive;
+    }
+
+    public function setStateDuration($aSegundos)
+    {
+        $this->stateDuration = $aSegundos;
     }
 
     private function getQueryString($request)
