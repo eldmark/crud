@@ -104,6 +104,15 @@ class CrudController extends BaseController
 
     public function edit(Request $request, $aId)
     {
+        // Los permisos solo se leian en la vista para esconder botones, asi que la ruta
+        // seguia siendo alcanzable por POST directo. En esta rama no hay setup(): el
+        // controlador hijo define los permisos en su constructor o en un middleware, de
+        // modo que ya estan poblados aca. Se revisa sobre el $aId sin desencriptar porque
+        // create() delega aca con null y decrypt(null) lanzaria excepcion antes del chequeo.
+        if (empty($this->permissions[$aId ? 'update' : 'create'])) {
+            abort(403);
+        }
+
         if (config('csgtcrud.use_encryption')) {
             $aId = decrypt($aId);
         }
@@ -163,6 +172,11 @@ class CrudController extends BaseController
 
     public function update(Request $request, $aId)
     {
+        // store() delega aca con $aId === 0, de modo que ese caso valida el permiso de alta.
+        if (empty($this->permissions[$aId === 0 ? 'create' : 'update'])) {
+            abort(403);
+        }
+
         $request->validate($this->validationRules);
 
         $fields = Arr::except($request->request->all(), $this->ignoreFields);
@@ -286,6 +300,10 @@ class CrudController extends BaseController
 
     public function destroy(Request $request, $aId)
     {
+        if (empty($this->permissions['destroy'])) {
+            abort(403);
+        }
+
         try {
             if (config('csgtcrud.use_encryption')) {
                 $aId = decrypt($aId);
