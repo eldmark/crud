@@ -73,9 +73,8 @@ class CrudController extends BaseController
     {
         $this->setup($request);
         $data = $this->model->find($aId);
-        if ($request->expectsJson()) {
-            return response()->json($data);
-        }
+
+        return response()->json($data);
     }
 
     public function edit(Request $request, $aId)
