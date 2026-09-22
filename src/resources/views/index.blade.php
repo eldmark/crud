@@ -12,7 +12,7 @@
             $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
                 console.log(JSON.stringify(message));
             };
-            var oTable = $('.dataTable').dataTable({
+            var oTable = $('#{{ $tableId }}').dataTable({
                 processing: true,
                 serverSide: true,
                 searchDelay: 500,
@@ -207,7 +207,7 @@
                 oTable.fnSetColumnVis(-1, false);
             @endif ;
 
-            $('.dataTable').on('init.dt', function() {
+            $('#{{ $tableId }}').on('init.dt', function() {
                 console.log('init');
                 $('.pagination').addClass('pagination-sm');
                 $('.dataTables_info').addClass('small text-muted');
@@ -227,7 +227,7 @@
                 $('.dataTables_filter label').css('width', '100%');
             });
 
-            $('.dataTable').on('processing.dt', function(e, settings, processing) {
+            $('#{{ $tableId }}').on('processing.dt', function(e, settings, processing) {
                 console.log('processing');
                 console.log(processing);
                 if (processing == false)
@@ -254,7 +254,7 @@
     <div class="card">
         <div class="card-body">
             <div class="{{ $responsive ? 'table-responsive' : '' }}">
-                <table class="table table-sm table-striped table-hover dataTable display">
+                <table id="{{ $tableId }}" class="table table-sm table-striped table-hover dataTable display">
                     <thead>
                         <tr>
                             @foreach ($columns as $column)

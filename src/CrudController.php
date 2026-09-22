@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Storage;
 
@@ -70,12 +71,14 @@ class CrudController extends BaseController
         }
         $breadcrumb = $this->generateBreadcrumb('index');
         $stateDuration = $this->stateDuration !== null ? $this->stateDuration : config('csgtcrud.stateDuration', 0);
+        $tableId = 'crud-table-'.Str::slug($request->path());
 
         return view('csgtcrud::index')
             ->with('layout', $this->layout)
             ->with('breadcrumb', $breadcrumb)
             ->with('stateSave', $this->stateSave)
             ->with('stateDuration', $stateDuration)
+            ->with('tableId', $tableId)
             ->with('showExport', $this->showExport)
             ->with('showSearch', $this->showSearch)
             ->with('responsive', $this->responsive)
