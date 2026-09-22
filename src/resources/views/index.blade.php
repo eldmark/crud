@@ -8,6 +8,7 @@
 @section('javascript')
     <script type="module">
         $(document).ready(function() {
+            $.fn.dataTable.defaults.stateDuration = {!! $stateDuration !!};
             $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
                 console.log(JSON.stringify(message));
             };

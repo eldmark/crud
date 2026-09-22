@@ -25,6 +25,8 @@ class CrudController extends BaseController
 
     private $stateSave = true;
 
+    private $stateDuration = null;
+
     private $responsive = true;
 
     private $layout = 'layouts.app';
@@ -67,11 +69,13 @@ class CrudController extends BaseController
             dd('setModel is required.');
         }
         $breadcrumb = $this->generateBreadcrumb('index');
+        $stateDuration = $this->stateDuration !== null ? $this->stateDuration : config('csgtcrud.stateDuration', 0);
 
         return view('csgtcrud::index')
             ->with('layout', $this->layout)
             ->with('breadcrumb', $breadcrumb)
             ->with('stateSave', $this->stateSave)
+            ->with('stateDuration', $stateDuration)
             ->with('showExport', $this->showExport)
             ->with('showSearch', $this->showSearch)
             ->with('responsive', $this->responsive)
@@ -1017,6 +1021,11 @@ class CrudController extends BaseController
     public function setPerPage($aCuantos)
     {
         $this->perPage = $aCuantos;
+    }
+
+    public function setStateDuration($aSegundos)
+    {
+        $this->stateDuration = $aSegundos;
     }
 
     public function setResponsive($aResponsive)

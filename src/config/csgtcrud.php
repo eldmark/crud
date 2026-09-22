@@ -16,4 +16,11 @@ return [
      * ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'zip'].
      */
     'extensiones_permitidas' => null,
+    /*
+     * Cantidad de segundos que DataTables guarda el estado de la tabla (busqueda,
+     * orden, pagina, etc) en el localStorage del navegador. 0 significa que el
+     * estado nunca expira. Se puede sobreescribir por controlador con
+     * setStateDuration().
+     */
+    'stateDuration' => 0,
 ];
