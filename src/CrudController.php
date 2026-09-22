@@ -5,6 +5,7 @@ use DB;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 
@@ -633,7 +634,7 @@ class CrudController extends BaseController
     {
         $allowed = ['campo', 'nombre', 'editable', 'show', 'tipo', 'class',
             'default', 'reglas', 'reglasmensaje', 'decimales', 'collection',
-            'enumarray', 'filepath', 'filewidth', 'fileheight', 'target', 'isforeign', 'utc', 'editClass'];
+            'enumarray', 'filepath', 'filedisk', 'filewidth', 'fileheight', 'target', 'isforeign', 'utc', 'editClass'];
         $tipos = ['string', 'multi', 'numeric', 'date', 'datetime', 'bool', 'combobox', 'password', 'enum', 'file', 'image', 'textarea', 'url', 'summernote', 'securefile'];
 
         foreach ($aParams as $key => $val) { //Validamos que todas las variables del array son permitidas.
@@ -664,6 +665,7 @@ class CrudController extends BaseController
         $decimales     = (!array_key_exists('decimales', $aParams) ? 0 : $aParams['decimales']);
         $collection    = (!array_key_exists('collection', $aParams) ? '' : $aParams['collection']);
         $filepath      = (!array_key_exists('filepath', $aParams) ? '' : $aParams['filepath']);
+        $filedisk      = (!array_key_exists('filedisk', $aParams) ? '' : $aParams['filedisk']);
         $filewidth     = (!array_key_exists('filewidth', $aParams) ? 80 : $aParams['filewidth']);
         $fileheight    = (!array_key_exists('fileheight', $aParams) ? 80 : $aParams['fileheight']);
         $target        = (!array_key_exists('target', $aParams) ? '_blank' : $aParams['target']);
@@ -691,6 +693,9 @@ class CrudController extends BaseController
         }
         if ($tipo == 'securefile' && $filepath == '') {
             dd('Para el tipo securefile hay que especifiarle el filepath');
+        }
+        if ($tipo == 'securefile' && $filedisk == '') {
+            dd('Para el tipo securefile hay que especifiarle el filedisk');
         }
 
         if ($tipo == 'emum' && count($enumarray) == 0) {
@@ -730,6 +735,7 @@ class CrudController extends BaseController
             'searchable'    => $searchable,
             'enumarray'     => $enumarray,
             'filepath'      => $filepath,
+            'filedisk'      => $filedisk,
             'filewidth'     => $filewidth,
             'fileheight'    => $fileheight,
             'target'        => $target,
