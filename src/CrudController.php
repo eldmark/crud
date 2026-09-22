@@ -915,7 +915,7 @@ class CrudController extends BaseController
             dd('Para el tipo securefile hay que especifiarle el filedisk');
         }
 
-        if ($tipo == 'emum' && count($enumarray) == 0) {
+        if ($tipo == 'enum' && count($enumarray) == 0) {
             dd('Para el tipo enum el enumarray es requerido');
         }
 
