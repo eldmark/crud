@@ -80,6 +80,9 @@ class CrudController extends BaseController
     public function edit(Request $request, $aId)
     {
         $this->setup($request);
+        if (!$this->permissions[$aId ? 'update' : 'create']) {
+            abort(403);
+        }
         $path = $this->downLevel($request->path()) . '/';
         if ($aId) {
             $data       = $this->model->find($aId);
@@ -134,6 +137,9 @@ class CrudController extends BaseController
         // abort(400, json_encode($request->all()));
 
         $this->setup($request);
+        if (!$this->permissions[$aId === 0 ? 'create' : 'update']) {
+            abort(403);
+        }
         $request->validate($this->validations);
         $fields = Arr::except($request->all(), $this->ignoreFields);
         $fields = array_merge($fields, $this->hiddenFields);
@@ -224,6 +230,9 @@ class CrudController extends BaseController
     public function destroy(Request $request, $aId)
     {
         $this->setup($request);
+        if (!$this->permissions['destroy']) {
+            abort(403);
+        }
         try {
             $this->model->destroy($aId);
             $request->session()->flash('message', trans('csgtcrud::crud.registroeliminado'));
