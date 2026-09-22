@@ -330,6 +330,36 @@ class CrudControllerTest extends TestCase
         $this->assertSame([], $byField['status_string']);
     }
 
+    public function testSetFieldDefaultsAMissingFiledisktoAnEmptyString()
+    {
+        // The securefile validation compares filedisk against '', so defaulting
+        // it to boolean true made that check unreachable: true == '' is false.
+        // A securefile declared without a disk was accepted and then failed at
+        // render time in Storage::disk(true), which resolves to the config key
+        // filesystems.disks.1.
+        $this->controller->setField(['field' => 'contract', 'type' => 'string']);
+
+        $fields = $this->read($this->controller, 'fields');
+        $byField = array_column($fields, 'filedisk', 'field');
+
+        $this->assertSame('', $byField['contract']);
+    }
+
+    public function testSetFieldKeepsAnExplicitFiledisk()
+    {
+        $this->controller->setField([
+            'field'    => 'contract_secure',
+            'type'     => 'securefile',
+            'filepath' => 'contracts',
+            'filedisk' => 's3',
+        ]);
+
+        $fields = $this->read($this->controller, 'fields');
+        $byField = array_column($fields, 'filedisk', 'field');
+
+        $this->assertSame('s3', $byField['contract_secure']);
+    }
+
     /*==================== downLevel ====================*/
 
     public function testDownLevelRemovesTheLastSegmentOfThePath()
