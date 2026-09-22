@@ -208,7 +208,6 @@ class CrudController extends BaseController
                     }
 
                     $file->move($path, $filename);
-                    $campos[$campo['campo']] = $filename;
                     $fields[$campo['campo']] = $filename;
                 }
             }
@@ -225,7 +224,6 @@ class CrudController extends BaseController
                     }
 
                     $filename                = Storage::disk($campo['filedisk'])->putFile($campo['filepath'], $request->file($campo['campo']));
-                    $campos[$campo['campo']] = $filename;
                     $fields[$campo['campo']] = $filename;
                 }
             }
