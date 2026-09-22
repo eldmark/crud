@@ -65,9 +65,7 @@ class CrudController extends BaseController
             $aId = decrypt($aId);
         }
         $data = $this->modelo->find($aId);
-        if ($request->expectsJson()) {
-            return response()->json($data);
-        }
+        return response()->json($data);
     }
 
     public function edit(Request $request, $aId)
