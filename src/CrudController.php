@@ -367,7 +367,7 @@ class CrudController extends BaseController
         //Paginamos en la base de datos y obtenemos unicamente la pagina solicitada
         $items = $data
             ->offset((int) $request->start)
-            ->limit((int) $request->length)
+            ->limit($this->resolveLength($request->length))
             ->get();
 
         //Los campos multi se cargan de una sola vez para evitar N+1
@@ -486,6 +486,31 @@ class CrudController extends BaseController
     private function resolveOrderDirection($aOrder)
     {
         return strtolower((string) ($aOrder['dir'] ?? '')) == 'desc' ? 'desc' : 'asc';
+    }
+
+    /**
+     * Resuelve el "length" a usar en el limit() de data().
+     *
+     * Por defecto (config csgtcrud.max_page_length en null) se preserva el
+     * comportamiento historico: se usa el valor recibido del cliente tal cual,
+     * sin ningun tope. Cuando la aplicacion configura un maximo, un length
+     * recibido menor o igual a 0 se trata como perPage(), y cualquier valor
+     * mayor se recorta a ese maximo, para que un cliente no pueda pedir la
+     * tabla completa de una sola vez (por ejemplo con length=9999999).
+     */
+    private function resolveLength($aLength)
+    {
+        $maxLength = $this->config('csgtcrud.max_page_length', null);
+        if ($maxLength === null) {
+            return (int) $aLength;
+        }
+
+        $length = (int) $aLength;
+        if ($length <= 0) {
+            $length = $this->perPage;
+        }
+
+        return min($length, (int) $maxLength);
     }
 
     /**
