@@ -4,6 +4,7 @@ return [
     'agregar'            => 'Add',
     'editar'             => 'Edit',
     'eliminar'           => 'Delete',
+    'extensionnopermitida' => 'File extension not allowed',
     'si'                 => 'Yes',
     'seguro'             => 'Are you sure you want to delete this record?',
     'sLengthMenu'        => 'Show _MENU_ results per page',

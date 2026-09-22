@@ -4,6 +4,7 @@ return [
     'agregar'            => 'Agregar',
     'editar'             => 'Editar',
     'eliminar'           => 'Eliminar',
+    'extensionnopermitida' => 'La extensión del archivo no está permitida',
     'si'                 => 'Si',
     'seguro'             => '¿Está seguro que desea eliminar este registro?',
     'sLengthMenu'        => 'Mostrar _MENU_ resultados por p&aacute;gina',
