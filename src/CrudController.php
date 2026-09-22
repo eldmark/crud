@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class CrudController extends BaseController
 {
@@ -20,6 +21,8 @@ class CrudController extends BaseController
     private $showSearch = true;
 
     private $stateSave = true;
+
+    private $stateDuration = 0;
 
     private $responsive = true;
 
@@ -57,6 +60,11 @@ class CrudController extends BaseController
 
     private $breadcrumb = ['mostrar' => true, 'breadcrumb' => []];
 
+    public function __construct()
+    {
+        $this->stateDuration = config('csgtcrud.stateDuration', 0);
+    }
+
     public function setup(Request $request)
     {
         abort(400, 'Este método debe ser sobreescrito en el controlador padre');
@@ -71,10 +79,15 @@ class CrudController extends BaseController
         }
         $breadcrumb = $this->generarBreadcrumb('index');
 
+        $tableSlug = Str::slug($request->path());
+        $tableId = 'tabla-catalogo-'.($tableSlug !== '' ? $tableSlug : 'root');
+
         return view('csgtcrud::index')
             ->with('layout', $this->layout)
             ->with('breadcrumb', $breadcrumb)
+            ->with('tableId', $tableId)
             ->with('stateSave', $this->stateSave)
+            ->with('stateDuration', $this->stateDuration)
             ->with('showExport', $this->showExport)
             ->with('showSearch', $this->showSearch)
             ->with('responsive', $this->responsive)
@@ -1023,6 +1036,11 @@ class CrudController extends BaseController
     public function setResponsive($aResponsive)
     {
         $this->responsive = $aResponsive;
+    }
+
+    public function setStateDuration($aSegundos)
+    {
+        $this->stateDuration = $aSegundos;
     }
 
     private function getQueryString($request)

@@ -8,6 +8,7 @@
 @section('javascript')
     <script type="module">
         $(document).ready(function() {
+            $.fn.dataTable.defaults.stateDuration = {!! (int) $stateDuration !!};
             $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
                 console.log(JSON.stringify(message));
             };
@@ -90,7 +91,7 @@
 
             addFilterRow();
 
-            var oTable = $('.tabla-catalogo').dataTable({
+            var oTable = $('#{!! $tableId !!}').dataTable({
                 processing: true,
                 serverSide: true,
                 searching: false,
@@ -278,7 +279,7 @@
                 oTable.fnSetColumnVis(-1, false);
             @endif ;
 
-            $('.tabla-catalogo').on('init.dt', function() {
+            $('#{!! $tableId !!}').on('init.dt', function() {
                 console.log('init');
                 $('.pagination').addClass('pagination-sm');
                 $('.dataTables_info').addClass('small text-muted');
@@ -322,7 +323,7 @@
                 oTable.api().draw();
             });
 
-            $('.tabla-catalogo').on('processing.dt', function(e, settings, processing) {
+            $('#{!! $tableId !!}').on('processing.dt', function(e, settings, processing) {
                 console.log('processing');
                 console.log(processing);
                 if (processing == false)
@@ -362,7 +363,7 @@
                 </div>
             @endif
             <div class="{{ $responsive ? 'table-responsive' : '' }}">
-                <table class="table table-sm table-striped table-hover tabla-catalogo display">
+                <table id="{{ $tableId }}" class="table table-sm table-striped table-hover tabla-catalogo display">
                     <thead>
                         <tr>
                             @foreach ($columnas as $columna)

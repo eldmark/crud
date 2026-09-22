@@ -14,4 +14,19 @@ return [
      */
 
     'usar_encripcion' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Duración del estado guardado (stateDuration)
+    |--------------------------------------------------------------------------
+    |
+    | Cantidad de segundos que DataTables conserva el estado guardado
+    | (ordenamiento, filtros, paginación) en localStorage. Por defecto
+    | DataTables lo expira a las 2 horas (7200 segundos). Poniendo este
+    | valor en 0 el estado nunca expira.
+    |
+    |
+     */
+
+    'stateDuration' => 0,
 ];
