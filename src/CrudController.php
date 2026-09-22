@@ -155,7 +155,6 @@ class CrudController extends BaseController
                     }
 
                     $file->move($path, $filename);
-                    $campos[$campo['campo']] = $filename;
                     $fields[$campo['campo']] = $filename;
                 }
             }
