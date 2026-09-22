@@ -354,7 +354,7 @@ class CrudController extends BaseController
                     continue;
                 }
 
-                $direction = strtolower($order['dir']) == 'desc' ? 'desc' : 'asc';
+                $direction = $this->resolveOrderDirection($order);
 
                 if ($columnName == $this->uniqueid) {
                     $data->orderBy($this->model->getTable() . '.' . $this->model->getKeyName(), $direction);
@@ -471,6 +471,21 @@ class CrudController extends BaseController
         }
 
         return response()->json(['draw' => $request->draw, 'recordsTotal' => $recordsTotal, 'recordsFiltered' => $recordsFiltered, 'data' => $arr]);
+    }
+
+    /**
+     * Resuelve la direccion de orden ("asc"/"desc") a partir de una entrada de
+     * $request->order.
+     *
+     * $order['dir'] viene directo del cliente y puede faltar en una peticion
+     * malformada; strtolower(null) es deprecado desde PHP 8.1 (fatal para
+     * count(), pero solo un aviso aqui), asi que se castea a string antes.
+     * Cualquier valor que no sea exactamente "desc" cae a "asc", igual que
+     * antes de este cambio.
+     */
+    private function resolveOrderDirection($aOrder)
+    {
+        return strtolower((string) ($aOrder['dir'] ?? '')) == 'desc' ? 'desc' : 'asc';
     }
 
     /**
