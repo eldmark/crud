@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Storage;
 
 class CrudController extends BaseController
@@ -188,8 +189,18 @@ class CrudController extends BaseController
             if (($campo['type'] == 'file') || ($campo['type'] == 'image')) {
                 if ($request->hasFile($campo['field'])) {
                     $file = $request->file($campo['field']);
+                    $extension = strtolower($file->getClientOriginalExtension());
 
-                    $filename = date('Ymdhis').mt_rand(1, 1000).'.'.strtolower($file->getClientOriginalExtension());
+                    // Whitelist de extensiones: solo se aplica si la aplicacion configura
+                    // 'extensiones_permitidas'. Por defecto (null) el comportamiento no cambia.
+                    $extensionesPermitidas = config('csgtcrud.extensiones_permitidas');
+                    if (is_array($extensionesPermitidas) && ! in_array($extension, array_map('strtolower', $extensionesPermitidas))) {
+                        throw ValidationException::withMessages([
+                            $campo['field'] => [trans('csgtcrud::crud.extensionnopermitida')],
+                        ]);
+                    }
+
+                    $filename = date('Ymdhis').mt_rand(1, 1000).'.'.$extension;
                     $path = public_path().$campo['filepath'];
 
                     if (! file_exists($path)) {
