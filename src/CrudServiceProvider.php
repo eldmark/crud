@@ -21,10 +21,16 @@ class CrudServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/resources/lang/' => base_path('/resources/lang/vendor/csgtcrud'),
         ], 'lang');
+
+        $this->publishes([
+            __DIR__ . '/config/csgtcrud.php' => config_path('csgtcrud.php'),
+        ], 'config');
     }
 
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__ . '/config/csgtcrud.php', 'csgtcrud');
+
         $this->commands([
             Console\MakeCrudCommand::class,
         ]);
