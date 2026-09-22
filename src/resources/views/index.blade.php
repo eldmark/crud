@@ -8,7 +8,6 @@
 @section('javascript')
     <script type="module">
         $(document).ready(function() {
-            $.fn.dataTable.defaults.stateDuration = {!! (int) $stateDuration !!};
             $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
                 console.log(JSON.stringify(message));
             };
@@ -97,6 +96,7 @@
                 searching: false,
                 @if ($stateSave)
                     stateSave: true,
+                    stateDuration: {!! (int) $stateDuration !!},
                     stateSaveParams: function(settings, data) {
                         data.columns.forEach(function(column) {
                             delete column.visible;

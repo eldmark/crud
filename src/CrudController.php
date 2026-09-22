@@ -25,7 +25,7 @@ class CrudController extends BaseController
 
     private $stateSave = true;
 
-    private $stateDuration = 0;
+    private $stateDuration = null;
 
     private $responsive = true;
 
@@ -63,11 +63,6 @@ class CrudController extends BaseController
 
     private $breadcrumb = ['mostrar' => true, 'breadcrumb' => []];
 
-    public function __construct()
-    {
-        $this->stateDuration = config('csgtcrud.stateDuration', 0);
-    }
-
     public function setup(Request $request)
     {
         abort(400, 'Este método debe ser sobreescrito en el controlador padre');
@@ -90,7 +85,7 @@ class CrudController extends BaseController
             ->with('breadcrumb', $breadcrumb)
             ->with('tableId', $tableId)
             ->with('stateSave', $this->stateSave)
-            ->with('stateDuration', $this->stateDuration)
+            ->with('stateDuration', $this->getStateDuration())
             ->with('showExport', $this->showExport)
             ->with('showSearch', $this->showSearch)
             ->with('responsive', $this->responsive)
@@ -1070,6 +1065,14 @@ class CrudController extends BaseController
     public function setStateDuration($aSegundos)
     {
         $this->stateDuration = $aSegundos;
+    }
+
+    private function getStateDuration()
+    {
+        // Si no se configuro con setStateDuration, se toma el valor del config.
+        return $this->stateDuration === null
+        ? config('csgtcrud.stateDuration', 0)
+        : $this->stateDuration;
     }
 
     private function getQueryString($request)
