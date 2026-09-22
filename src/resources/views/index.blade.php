@@ -60,7 +60,19 @@
 @section('prejavascript')
     @if(isset($state))
     <script>
-        var state = {!! json_encode($state, JSON_PRETTY_PRINT) !!};
+        // El estado vive bajo un namespace propio. Publicarlo como un global
+        // llamado "state" lo dejaba a merced de cualquier otra cosa en la pagina
+        // que use ese nombre, en las dos direcciones: nos lo pisaban y lo
+        // pisabamos.
+        window.csgtCrud = window.csgtCrud || {};
+        window.csgtCrud.state = {!! json_encode($state, JSON_PRETTY_PRINT) !!};
+
+        // Alias para los componentes que todavia leen el global suelto. Solo se
+        // define si nadie lo ocupo antes, para no pisar codigo ajeno. Deprecado:
+        // lea window.csgtCrud.state.
+        if (typeof window.state === 'undefined') {
+            window.state = window.csgtCrud.state;
+        }
     </script>
     @endif
 @stop

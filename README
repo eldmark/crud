@@ -21,6 +21,28 @@ toastr is required
     mostrar correcto todo
     fechas!
 
+## The state handed to the components
+
+The form publishes the record under its own namespace:
+
+```js
+window.csgtCrud.state
+```
+
+It used to be published as a bare `window.state`. That name is generic enough
+that anything else on the page using it collided, in both directions: the
+package overwrote other code's `state`, and other code overwrote the package's.
+
+`window.state` is still set, so components that already read it keep working,
+but only when nothing else has claimed the name first — the package no longer
+overwrites a `state` that was already there. **Read `window.csgtCrud.state` in
+new components**; the bare alias is deprecated and goes away in the next
+package version.
+
+The state only exists if the application's layout yields the
+`prejavascript` section. When it does not, the views now say so instead of
+rendering an empty component.
+
 ## Requirements
 
 Package version `7.0 Beta` lives on branch `7.x`. The branch number is the package
