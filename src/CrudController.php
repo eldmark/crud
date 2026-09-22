@@ -172,8 +172,12 @@ class CrudController extends BaseController
         foreach ($this->fields as $campo) {
             if (array_key_exists($campo['field'], $fields)) {
                 if ($campo['type'] == 'date' || $campo['type'] == 'datetime') {
-                    $aFecha = $fields[$campo['field']];
-                    $fechahora = explode(' ', $fields[$campo['field']]);
+                    // El cast a string evita la deprecacion de PHP 8.1 cuando el campo llega
+                    // null (p.ej. desde setHidden() o desde una peticion JSON). El resultado
+                    // es el mismo que antes: explode(' ', '') devuelve [''] y cae en la rama de
+                    // solo fecha, igual que explode(' ', null).
+                    $aFecha = (string) $fields[$campo['field']];
+                    $fechahora = explode(' ', $aFecha);
 
                     if (count($fechahora) == 2) {
                         $formato = 'd/m/Y H:i';
@@ -361,16 +365,20 @@ class CrudController extends BaseController
         // Filtramos con el campo de la vista
         if ($search['value'] != '') {
             if ($recordsTotal > 0) {
-                $data = $data->filter(function ($item) use ($search) {
+                // El cast a string evita la deprecacion de PHP 8.1 al pasar null a
+                // strtoupper()/stristr() cuando la columna de la base de datos viene NULL.
+                // El needle se calcula una sola vez y no por cada columna de cada fila.
+                $needle = strtoupper((string) $search['value']);
+                $data = $data->filter(function ($item) use ($needle) {
                     $result = false;
                     foreach ($item->getAttributes() as $column) {
-                        $result = $result || stristr(strtoupper($column), strtoupper($search['value']));
+                        $result = $result || stristr(strtoupper((string) $column), $needle);
                     }
                     $relations = $item->getRelations();
                     foreach ($relations as $relation) {
                         if ($relation && method_exists($relation, 'getAttributes')) {
                             foreach ($relation->getAttributes() as $column) {
-                                $result = $result || stristr(strtoupper($column), strtoupper($search['value']));
+                                $result = $result || stristr(strtoupper((string) $column), $needle);
                             }
                         }
                     }
