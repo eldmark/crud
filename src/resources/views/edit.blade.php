@@ -149,6 +149,10 @@
                                     <div>
                                         <?php $campo = old($column['field'], $data ? $data->{$column['field']} : $column['default']); ?>
                                         <select name="{{ $column['field'] }}" {!! arrayToFields($arr) !!}>
+                                            {{-- Sin esta opcion el navegador selecciona la primera de la lista
+                                                 cuando el registro no tiene valor, y al guardar la escribe como
+                                                 si el usuario la hubiera elegido. --}}
+                                            <option value="" {{ ($campo === null || $campo === '' ? "selected='selected'" : "") }}></option>
                                             @foreach($combos[$column['alias']] as $id => $opcion)
                                             <option value="{{ $id }}" {{ ($campo == $id ? "selected='selected'" : "") }}>{!! $opcion !!}</option>
                                             @endforeach
@@ -187,6 +191,9 @@
                                     {!!$label!!}
                                     <div>
                                         <select name="{{ $column['campoReal'] }}" {!! arrayToFields($arr) !!}>
+                                            {{-- Ver el comentario del tipo combobox: sin opcion vacia se guarda
+                                                 la primera opcion sin que nadie la haya elegido. --}}
+                                            <option value="" {{ ($valor === null || $valor === '' ? "selected='selected'" : "") }}></option>
                                             @foreach($column['enumarray'] as $id => $opcion)
                                             <option value="{{ $id }}" {{ ($valor == $id ? "selected='selected'" : "") }}>{!! $opcion !!}</option>
                                             @endforeach
