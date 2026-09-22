@@ -116,6 +116,13 @@ class CrudController extends BaseController
     {
         $this->setup($request);
 
+        // Los permisos solo se leian en la vista para esconder botones, asi que la ruta
+        // seguia siendo alcanzable por POST directo. Se revisan despues de setup(), que es
+        // donde el controlador hijo los define. create() delega aca con $aId nulo.
+        if (empty($this->permisos[$aId ? 'edit' : 'add'])) {
+            abort(403);
+        }
+
         $path = $this->downLevel($request->path()).'/';
         if ($aId) {
             if (config('csgtcrud.usar_encripcion')) {
@@ -171,6 +178,11 @@ class CrudController extends BaseController
     public function update(Request $request, $aId)
     {
         $this->setup($request);
+
+        // store() delega aca con $aId === 0, de modo que ese caso valida el permiso de alta.
+        if (empty($this->permisos[$aId === 0 ? 'add' : 'edit'])) {
+            abort(403);
+        }
 
         $request->validate($this->reglas);
         $fields = $request->except($this->noGuardar);
@@ -260,6 +272,10 @@ class CrudController extends BaseController
     public function destroy(Request $request, $aId)
     {
         $this->setup($request);
+
+        if (empty($this->permisos['delete'])) {
+            abort(403);
+        }
 
         try {
             if (config('csgtcrud.usar_encripcion')) {
