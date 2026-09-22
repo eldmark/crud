@@ -47,4 +47,20 @@ return [
      */
 
     'extensiones_permitidas' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Largo máximo de página (max_page_length)
+    |--------------------------------------------------------------------------
+    |
+    | Cantidad máxima de registros que se pueden solicitar por página en
+    | data(). Por defecto es null, lo que significa que no se aplica
+    | ningún límite y se preserva el comportamiento actual (el "length"
+    | que envía el cliente se usa tal cual). Para activar el límite,
+    | definir un número entero, por ejemplo: 500
+    |
+    |
+     */
+
+    'max_page_length' => null,
 ];

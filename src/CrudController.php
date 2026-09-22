@@ -363,9 +363,19 @@ class CrudController extends BaseController
         }
 
         // Filtramos los registros y obtenemos el arreglo con la data
+        $length = (int) $request->length;
+        $maxPageLength = config('csgtcrud.max_page_length');
+        if ($maxPageLength !== null) {
+            if ($length <= 0) {
+                $length = $this->perPage;
+            } elseif ($length > $maxPageLength) {
+                $length = $maxPageLength;
+            }
+        }
+
         $items = $data
             ->offset((int) $request->start)
-            ->limit((int) $request->length)
+            ->limit($length)
             ->get();
 
         $multiRelations = array_values(array_unique(array_filter(array_map(function ($campo) {
