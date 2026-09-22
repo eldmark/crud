@@ -5,6 +5,13 @@
 @section('breadcrumb')
     {!! $breadcrumb !!}
 @stop
+@php
+    //Id unico por ruta: la clase .dataTable es compartida por todas las tablas
+    //del paquete, y DataTables usa el selector para armar la clave de
+    //localStorage del estado guardado, por lo que dos tablas con la misma
+    //clase en la misma pagina se pisarian el estado guardado entre si.
+    $crudTableId = 'crud-table-' . \Illuminate\Support\Str::slug(Request::path());
+@endphp
 @section('javascript')
     <script type="module">
         $(document).ready(function() {
@@ -78,7 +85,7 @@
                 updateRemoveButtons();
             }
 
-            var oTable = $('.dataTable').dataTable({
+            var oTable = $('#{{ $crudTableId }}').dataTable({
                 processing: true,
                 serverSide: true,
                 searching: false,
@@ -409,7 +416,7 @@
                 <hr />
             @endif
             <div class="{{ $responsive ? 'table-responsive' : '' }}">
-                <table class="table table-sm table-striped table-hover dataTable display">
+                <table id="{{ $crudTableId }}" class="table table-sm table-striped table-hover dataTable display">
                     <thead>
                         <tr>
                             @foreach ($columns as $column)
