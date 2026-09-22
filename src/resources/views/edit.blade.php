@@ -97,6 +97,12 @@
                                     {!! $label !!}
                                     @php $campo = $data ? $data->{$columna['campo']} : ''; @endphp
                                     <select name="{{ $columna['campo'] }}" {!! arrayToFields($arr) !!}>
+                                        {{-- Sin esta opcion el navegador selecciona la primera de la lista
+                                             cuando el registro no tiene valor, y al guardar la escribe como
+                                             si el usuario la hubiera elegido. --}}
+                                        <option value=""
+                                            {{ $campo === null || $campo === '' ? "selected='selected'" : '' }}>
+                                        </option>
                                         @foreach ($combos[$columna['alias']] as $id => $opcion)
                                             <option value="{{ $id }}"
                                                 {{ $campo == $id ? "selected='selected'" : '' }}>
@@ -128,6 +134,11 @@
                                     @endphp
                                     {!! $label !!}
                                     <select name="{{ $columna['campoReal'] }}" {!! arrayToFields($arr) !!}>
+                                        {{-- Ver el comentario del tipo combobox: sin opcion vacia se guarda
+                                             la primera opcion sin que nadie la haya elegido. --}}
+                                        <option value=""
+                                            {{ $valor === null || $valor === '' ? "selected='selected'" : '' }}>
+                                        </option>
                                         @foreach ($columna['enumarray'] as $id => $opcion)
                                             <option value="{{ $id }}"
                                                 {{ $valor == $id ? "selected='selected'" : '' }}>
