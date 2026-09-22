@@ -10,6 +10,7 @@ return [
     'filtrar' => 'Filtrar',
     'guardar' => 'Guardar',
     'limpiar' => 'Limpiar',
+    'no' => 'No',
     'passnocoinciden' => 'Las passwords no coinciden',
     'passrequerida' => 'La password es requerida',
     'quitarfiltro' => 'Quitar filtro',
@@ -30,5 +31,6 @@ return [
     'sPrevious' => 'Anterior',
     'sProcessing' => 'Procesando',
     'sZeroRecords' => 'No se encontraron registros',
+    'todos' => 'Todos',
     'valor' => 'Valor',
 ];

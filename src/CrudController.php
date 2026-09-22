@@ -554,23 +554,31 @@ class CrudController extends BaseController
                 continue;
             }
 
-            $this->applyColumnFilter($query, $columns[$columnIndex], '%'.$value.'%');
+            // Una columna con lista cerrada se filtra por igualdad: con LIKE
+            // '%1%' un enum de claves 1 y 10 devolveria ambas.
+            $column = $columns[$columnIndex];
+            if ($this->getFilterOptions($column) !== []) {
+                $this->applyColumnFilter($query, $column, $value, true);
+            } else {
+                $this->applyColumnFilter($query, $column, '%'.$value.'%');
+            }
             $applied = true;
         }
 
         return $applied;
     }
 
-    private function applyColumnFilter($query, $column, $searchValue)
+    private function applyColumnFilter($query, $column, $searchValue, $exact = false)
     {
         $field = $column['campo'];
+        $operator = $exact ? '=' : 'like';
 
         if ($column['tipo'] === 'multi' && method_exists($this->modelo, $field)) {
             $methodName = 'fetch'.ucfirst($field).'Column';
             $relatedColumn = method_exists($this->modelo, $methodName) ? $this->modelo->{$methodName}() : 'nombre';
 
-            $query->whereHas($field, function ($relationQuery) use ($relatedColumn, $searchValue) {
-                $relationQuery->where($relatedColumn, 'like', $searchValue);
+            $query->whereHas($field, function ($relationQuery) use ($relatedColumn, $searchValue, $operator) {
+                $relationQuery->where($relatedColumn, $operator, $searchValue);
             });
 
             return;
@@ -584,8 +592,8 @@ class CrudController extends BaseController
             [$relationName, $relatedColumn] = explode('.', $field, 2);
 
             if (method_exists($this->modelo, $relationName)) {
-                $query->whereHas($relationName, function ($relationQuery) use ($relatedColumn, $searchValue) {
-                    $relationQuery->where($relatedColumn, 'like', $searchValue);
+                $query->whereHas($relationName, function ($relationQuery) use ($relatedColumn, $searchValue, $operator) {
+                    $relationQuery->where($relatedColumn, $operator, $searchValue);
                 });
 
                 return;
@@ -593,12 +601,12 @@ class CrudController extends BaseController
         }
 
         if (strpos($field, '(') !== false || strpos($field, ')') !== false || strpos($field, ' ') !== false) {
-            $query->whereRaw($field.' LIKE ?', [$searchValue]);
+            $query->whereRaw($field.($exact ? ' = ?' : ' LIKE ?'), [$searchValue]);
 
             return;
         }
 
-        $query->where($field, 'like', $searchValue);
+        $query->where($field, $operator, $searchValue);
     }
 
     private function fillCombos($aCampos)
@@ -735,8 +743,36 @@ class CrudController extends BaseController
                 'index' => $index,
                 'label' => strip_tags($column['nombre']),
                 'type' => $column['tipo'],
+                'options' => $this->getFilterOptions($column),
             ];
         }, $this->getCamposShow(), array_keys($this->getCamposShow()));
+    }
+
+    /**
+     * Valores que una columna puede tomar, para ofrecerlos como lista en el
+     * filtro en lugar de pedirle al usuario que escriba el valor exacto.
+     * Una columna sin lista cerrada devuelve un arreglo vacio y se sigue
+     * filtrando por texto.
+     */
+    private function getFilterOptions($column)
+    {
+        if ($column['tipo'] === 'enum' && is_array($column['enumarray']) && count($column['enumarray']) > 0) {
+            $options = [];
+            foreach ($column['enumarray'] as $value => $label) {
+                $options[] = ['value' => (string) $value, 'label' => strip_tags($label)];
+            }
+
+            return $options;
+        }
+
+        if ($column['tipo'] === 'bool') {
+            return [
+                ['value' => '1', 'label' => trans('csgtcrud::crud.si')],
+                ['value' => '0', 'label' => trans('csgtcrud::crud.no')],
+            ];
+        }
+
+        return [];
     }
 
     private function getCamposShowMine()
