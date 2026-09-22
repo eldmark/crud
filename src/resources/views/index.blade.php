@@ -23,6 +23,34 @@
             var $filterRows = $('#crud-filter-rows');
             var filterRowTemplate = $filterRows.html();
 
+            // Una columna con lista cerrada (enum, bool) se filtra eligiendo de un
+            // desplegable en lugar de escribiendo el valor exacto. El resto sigue
+            // siendo texto libre, o un selector de fecha cuando corresponde.
+            function buildValueControl(column, value) {
+                if (column && column.options && column.options.length) {
+                    var $select = $(
+                        '<select class="form-control form-select form-control-sm form-select-sm crud-filter-value"></select>'
+                    );
+                    $('<option></option>')
+                        .val('')
+                        .text(@json(trans('csgtcrud::crud.todos')))
+                        .appendTo($select);
+                    column.options.forEach(function(option) {
+                        $('<option></option>')
+                            .val(option.value)
+                            .text(option.label)
+                            .prop('selected', String(option.value) === String(value))
+                            .appendTo($select);
+                    });
+
+                    return $select;
+                }
+
+                return $('<input class="form-control form-control-sm crud-filter-value">')
+                    .attr('type', column && column.type === 'date' ? 'date' : 'text')
+                    .val(value);
+            }
+
             function addFilterRow(filter) {
                 filter = filter || {};
 
@@ -35,9 +63,8 @@
                 var selectedColumn = filterColumns.find(function(column) {
                     return String(column.index) === String($column.val());
                 });
-                var $value = $row.find('.crud-filter-value')
-                    .attr('type', selectedColumn && selectedColumn.type === 'date' ? 'date' : 'text')
-                    .val(filter.value || '');
+                $row.find('.crud-filter-value')
+                    .replaceWith(buildValueControl(selectedColumn, filter.value || ''));
 
                 $filterRows.append($row);
                 updateRemoveButtons();
@@ -48,9 +75,8 @@
                     return String(column.index) === String($(this).val());
                 }.bind(this));
                 var $value = $(this).closest('.crud-filter-row').find('.crud-filter-value');
-                var value = $value.val();
 
-                $value.attr('type', selectedColumn && selectedColumn.type === 'date' ? 'date' : 'text').val(value);
+                $value.replaceWith(buildValueControl(selectedColumn, $value.val()));
             });
 
             function updateRemoveButtons() {

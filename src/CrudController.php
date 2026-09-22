@@ -57,6 +57,16 @@ class CrudController extends BaseController
         return function_exists('config') ? config($aClave, $aDefault) : $aDefault;
     }
 
+    /**
+     * Mismo motivo que el wrapper de config(): trans() lo aporta
+     * illuminate/translation, que el suite de tests no instala. Cuando no
+     * existe se devuelve el texto de respaldo, que alcanza para el filtro.
+     */
+    private function transOrDefault($aClave, $aDefault)
+    {
+        return function_exists('trans') ? trans($aClave) : $aDefault;
+    }
+
     public function setup(Request $request)
     {
         abort(400, "This method must be overriden in parent");
@@ -610,7 +620,14 @@ class CrudController extends BaseController
                 continue;
             }
 
-            $this->applyColumnFilter($query, $columns[$columnIndex], '%' . $value . '%');
+            // Una columna con lista cerrada se filtra por igualdad: con LIKE
+            // '%1%' un enum de claves 1 y 10 devolveria ambas.
+            $column = $columns[$columnIndex];
+            if ($this->getFilterOptions($column) !== []) {
+                $this->applyColumnFilter($query, $column, $value, true);
+            } else {
+                $this->applyColumnFilter($query, $column, '%' . $value . '%');
+            }
             $applied = true;
         }
 
@@ -621,16 +638,17 @@ class CrudController extends BaseController
      * Traduce un filtro de columna a un WHERE. Las columnas de relaciones y los
      * campos multi se resuelven con whereHas.
      */
-    private function applyColumnFilter($query, $column, $searchValue)
+    private function applyColumnFilter($query, $column, $searchValue, $exact = false)
     {
-        $field = $column['field'];
+        $field    = $column['field'];
+        $operator = $exact ? '=' : 'like';
 
         if ($column['type'] === 'multi' && method_exists($this->model, $field)) {
             $methodName    = 'fetch' . ucfirst($field) . 'Column';
             $relatedColumn = method_exists($this->model, $methodName) ? $this->model->{$methodName}() : 'name';
 
-            $query->whereHas($field, function ($relationQuery) use ($relatedColumn, $searchValue) {
-                $relationQuery->where($relatedColumn, 'like', $searchValue);
+            $query->whereHas($field, function ($relationQuery) use ($relatedColumn, $searchValue, $operator) {
+                $relationQuery->where($relatedColumn, $operator, $searchValue);
             });
 
             return;
@@ -646,8 +664,8 @@ class CrudController extends BaseController
             $relatedColumn = $this->stripAlias($partes[1]);
 
             if (method_exists($this->model, $relationName)) {
-                $query->whereHas($relationName, function ($relationQuery) use ($relatedColumn, $searchValue) {
-                    $relationQuery->where($relatedColumn, 'like', $searchValue);
+                $query->whereHas($relationName, function ($relationQuery) use ($relatedColumn, $searchValue, $operator) {
+                    $relationQuery->where($relatedColumn, $operator, $searchValue);
                 });
 
                 return;
@@ -657,12 +675,12 @@ class CrudController extends BaseController
         $field = $this->stripAlias($field);
 
         if (strpos($field, '(') !== false || strpos($field, ')') !== false || strpos($field, ' ') !== false) {
-            $query->whereRaw($field . ' LIKE ?', [$searchValue]);
+            $query->whereRaw($field . ($exact ? ' = ?' : ' LIKE ?'), [$searchValue]);
 
             return;
         }
 
-        $query->where($field, 'like', $searchValue);
+        $query->where($field, $operator, $searchValue);
     }
 
     private function downLevel($aPath)
@@ -838,11 +856,39 @@ class CrudController extends BaseController
 
         return array_map(function ($column, $index) {
             return [
-                'index' => $index,
-                'label' => strip_tags($column['name']),
-                'type' => $column['type'],
+                'index'   => $index,
+                'label'   => strip_tags($column['name']),
+                'type'    => $column['type'],
+                'options' => $this->getFilterOptions($column),
             ];
         }, $columns, array_keys($columns));
+    }
+
+    /**
+     * Valores que una columna puede tomar, para ofrecerlos como lista en el
+     * filtro en lugar de pedirle al usuario que escriba el valor exacto.
+     * Una columna sin lista cerrada devuelve un arreglo vacio y se sigue
+     * filtrando por texto.
+     */
+    private function getFilterOptions($column)
+    {
+        if ($column['type'] === 'enum' && is_array($column['enumarray']) && count($column['enumarray']) > 0) {
+            $options = [];
+            foreach ($column['enumarray'] as $value => $label) {
+                $options[] = ['value' => (string) $value, 'label' => strip_tags($label)];
+            }
+
+            return $options;
+        }
+
+        if ($column['type'] === 'bool') {
+            return [
+                ['value' => '1', 'label' => $this->transOrDefault('csgtcrud::crud.si', 'Si')],
+                ['value' => '0', 'label' => $this->transOrDefault('csgtcrud::crud.no', 'No')],
+            ];
+        }
+
+        return [];
     }
 
     private function getShowMultipleFields()
