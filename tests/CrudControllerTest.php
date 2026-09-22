@@ -276,6 +276,90 @@ class CrudControllerTest extends TestCase
         $this->assertSame([], $query->getBindings());
     }
 
+    /*==================== filter options ====================*/
+
+    /**
+     * Declara las dos columnas de lista cerrada en el controlador de este test.
+     * No van en el fixture compartido porque correrian los indices de columna
+     * que usan los demas tests de filtro.
+     */
+    private function withClosedListColumns()
+    {
+        $this->controller->setField([
+            'field'     => 'status',
+            'name'      => 'Status',
+            'type'      => 'enum',
+            'enumarray' => ['a' => 'Active', 'i' => 'Inactive'],
+        ]);
+        $this->controller->setField(['field' => 'active', 'name' => 'Active', 'type' => 'bool']);
+    }
+
+    public function testGetFilterColumnsExposesTheOptionsOfClosedListColumns()
+    {
+        $this->withClosedListColumns();
+
+        $byLabel = [];
+        foreach ($this->call($this->controller, 'getFilterColumns') as $column) {
+            $byLabel[$column['label']] = $column;
+        }
+
+        $this->assertSame(
+            [['value' => 'a', 'label' => 'Active'], ['value' => 'i', 'label' => 'Inactive']],
+            $byLabel['Status']['options']
+        );
+        $this->assertSame(
+            [['value' => '1', 'label' => 'Si'], ['value' => '0', 'label' => 'No']],
+            $byLabel['Active']['options']
+        );
+
+        // Una columna de texto libre no ofrece lista, y su filtro sigue siendo
+        // un campo de escritura.
+        $this->assertSame([], $byLabel['Name']['options']);
+    }
+
+    public function testApplyFiltersToQueryMatchesAClosedListColumnExactly()
+    {
+        // Con LIKE '%a%' un enum de claves "a" e "i" devolveria tambien las filas
+        // cuyo valor solo contiene la letra, por eso la igualdad importa.
+        $this->withClosedListColumns();
+        $query = $this->query();
+
+        $applied = $this->call($this->controller, 'applyFiltersToQuery', [$query, [
+            ['column' => 4, 'value' => 'a'],
+        ]]);
+
+        $this->assertTrue($applied);
+        $this->assertStringContainsString('where "status" = ?', $query->toSql());
+        $this->assertStringNotContainsString('like', $query->toSql());
+        $this->assertSame(['a'], $query->getBindings());
+    }
+
+    public function testApplyFiltersToQueryMatchesABooleanColumnExactly()
+    {
+        $this->withClosedListColumns();
+        $query = $this->query();
+
+        $this->call($this->controller, 'applyFiltersToQuery', [$query, [
+            ['column' => 5, 'value' => '0'],
+        ]]);
+
+        $this->assertStringContainsString('where "active" = ?', $query->toSql());
+        $this->assertSame(['0'], $query->getBindings());
+    }
+
+    public function testApplyFiltersToQueryStillMatchesFreeTextColumnsWithLike()
+    {
+        $this->withClosedListColumns();
+        $query = $this->query();
+
+        $this->call($this->controller, 'applyFiltersToQuery', [$query, [
+            ['column' => 0, 'value' => 'acme'],
+        ]]);
+
+        $this->assertStringContainsString('where "name" like ?', $query->toSql());
+        $this->assertSame(['%acme%'], $query->getBindings());
+    }
+
     /*==================== resolveLength ====================*/
 
     public function testResolveLengthUsesTheRawRequestLengthWhenNoMaximumIsConfigured()
