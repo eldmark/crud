@@ -688,7 +688,7 @@ class CrudController extends BaseController
         $target        = (!array_key_exists('target', $aParams) ? '_blank' : $aParams['target']);
         $enumarray     = (!array_key_exists('enumarray', $aParams) ? [] : $aParams['enumarray']);
         $isforeign     = (!array_key_exists('isforeign', $aParams) ? true : $aParams['isforeign']);
-        $filedisk      = (!array_key_exists('filedisk', $aParams) ? true : $aParams['filedisk']);
+        $filedisk      = (!array_key_exists('filedisk', $aParams) ? '' : $aParams['filedisk']);
         $utc           = (!array_key_exists('utc', $aParams) ? false : $aParams['utc']);
 
         $searchable = true;
