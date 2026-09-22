@@ -8,6 +8,7 @@ use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller as BaseController;
 
 class CrudController extends BaseController
@@ -717,8 +718,12 @@ class CrudController extends BaseController
             dd('Para el tipo securefile hay que especifiarle el filedisk');
         }
 
-        if ($tipo == 'emum' && count($enumarray) == 0) {
-            dd('Para el tipo enum el enumarray es requerido');
+        if ($tipo == 'enum' && (!is_array($enumarray) || count($enumarray) == 0)) {
+            // No se aborta la peticion: antes de que esta validacion corriera, un enum sin
+            // opciones renderizaba un select vacio y la aplicacion seguia funcionando. Se
+            // conserva ese comportamiento y solo se deja constancia en el log.
+            Log::warning('csgtcrud: el campo "' . $aParams['campo'] . '" es de tipo enum y no tiene un enumarray valido; se renderiza un select vacio.');
+            $enumarray = [];
         }
 
         if (!strpos($aParams['campo'], ')')) {
