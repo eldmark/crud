@@ -112,6 +112,15 @@ class CrudController extends BaseController
 
     public function edit(Request $request, $aId)
     {
+        // Los permisos solo se leian en la vista para esconder botones, asi que la
+        // ruta seguia siendo alcanzable por POST directo. Esta rama no tiene setup():
+        // el controlador hijo los define en su constructor, de modo que ya estan
+        // poblados aca. Se usa empty() y no el indice directo para que un arreglo
+        // parcial deniegue en vez de emitir un warning de clave indefinida en PHP 8.
+        if (empty($this->permisos['edit'])) {
+            abort(403);
+        }
+
         $data       = $this->modelo->find(Crypt::decrypt($aId));
         $path       = $this->downLevel($request->path()) . '/';
         $camposEdit = $this->getCamposEditMine();
@@ -131,6 +140,10 @@ class CrudController extends BaseController
 
     public function create(Request $request)
     {
+        if (empty($this->permisos['add'])) {
+            abort(403);
+        }
+
         $data       = null;
         $path       = $this->downLevel($request->path());
         $camposEdit = $this->getCamposEditMine();
@@ -155,6 +168,10 @@ class CrudController extends BaseController
 
     public function update(Request $request, $aId)
     {
+        if (empty($this->permisos[$aId === 0 ? 'add' : 'edit'])) {
+            abort(403);
+        }
+
         $rules = [];
         foreach ($this->getCamposEditMine() as $columna) {
             foreach ($columna['reglas'] as $regla) {
@@ -271,6 +288,10 @@ class CrudController extends BaseController
 
     public function destroy(Request $request, $aId)
     {
+        if (empty($this->permisos['delete'])) {
+            abort(403);
+        }
+
         try {
             $this->modelo->destroy(Crypt::decrypt($aId));
             $request->session()->flash('message', trans('csgtcrud::crud.registroeliminado'));
