@@ -26,6 +26,36 @@
             @endforeach
         @endif
     />
+    {{-- Un elemento que Vue nunca procesa se queda en el DOM sin renderizar nada
+         y sin un solo mensaje en consola: el navegador ignora las etiquetas que
+         no conoce. Cuando Vue si lo monta, reemplaza la etiqueta por el DOM del
+         componente, asi que encontrarla todavia aqui significa que no paso nada. --}}
+    <script>
+        window.addEventListener('load', function() {
+            // Margen para un componente registrado de forma asincrona.
+            setTimeout(function() {
+                var problems = [];
+
+                if (document.querySelector('{{ $component }}')) {
+                    problems.push(
+                        'Vue no monto el componente <{{ $component }}>. Revise que Vue este cargado, ' +
+                        'que el componente este registrado, y que la aplicacion use el build de Vue con ' +
+                        'compilador: el build runtime-only no compila plantillas que llegan en el HTML.');
+                }
+                if (!problems.length) {
+                    return;
+                }
+
+                var message = 'csgt/crud: ' + problems.join(' ');
+                var banner = document.createElement('div');
+                banner.setAttribute('style',
+                    'background:#b00020;color:#fff;padding:12px;font-family:sans-serif;font-size:14px');
+                banner.textContent = message;
+                document.body.insertBefore(banner, document.body.firstChild);
+                console.error(message);
+            }, 300);
+        });
+    </script>
 @stop
 @section('prejavascript')
     @if(isset($state))
