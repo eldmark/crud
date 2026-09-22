@@ -71,6 +71,15 @@ class CrudController extends BaseController
 
     public function edit(Request $request, $aId)
     {
+        // Los permisos solo se leian en la vista para esconder botones, asi que la
+        // ruta seguia siendo alcanzable por POST directo. Esta rama no tiene setup():
+        // el controlador hijo los define en su constructor, de modo que ya estan
+        // poblados aca. Se usa empty() y no el indice directo para que un arreglo
+        // parcial deniegue en vez de emitir un warning de clave indefinida en PHP 8.
+        if (empty($this->permissions['update'])) {
+            abort(403);
+        }
+
         if (config('csgtcrud.usar_encripcion')) {
             $aId = decrypt($aId);
         }
@@ -94,6 +103,10 @@ class CrudController extends BaseController
 
     public function create(Request $request)
     {
+        if (empty($this->permissions['create'])) {
+            abort(403);
+        }
+
         $data            = null;
         $path            = $this->downLevel($request->path());
         $editFields      = $this->getLocalEditFields();
@@ -118,6 +131,10 @@ class CrudController extends BaseController
 
     public function update(Request $request, $aId)
     {
+        if (empty($this->permissions[$aId === 0 ? 'create' : 'update'])) {
+            abort(403);
+        }
+
         $fields = array_except($request->request->all(), $this->ignoreFields);
         $fields = array_merge($fields, $this->hiddenFields);
 
@@ -225,6 +242,10 @@ class CrudController extends BaseController
 
     public function destroy(Request $request, $aId)
     {
+        if (empty($this->permissions['destroy'])) {
+            abort(403);
+        }
+
         try {
             if (config('csgtcrud.usar_encripcion')) {
                 $aId = decrypt($aId);
