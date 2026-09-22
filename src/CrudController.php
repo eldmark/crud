@@ -76,6 +76,15 @@ class CrudController extends BaseController
 
     public function edit(Request $request, $aId)
     {
+        // Los permisos solo se leian en la vista para esconder botones, asi que la
+        // ruta seguia siendo alcanzable por POST directo. Esta rama no tiene setup():
+        // el controlador hijo los define en su constructor, de modo que ya estan
+        // poblados aca. Se usa empty() y no el indice directo para que un arreglo
+        // parcial deniegue en vez de emitir un warning de clave indefinida en PHP 8.
+        if (empty($this->permissions[$aId ? 'update' : 'create'])) {
+            abort(403);
+        }
+
         $urlUpdate = '/' . $this->downLevel($request->path());
         $urlIndex  = $this->downLevel($urlUpdate);
         if ($aId) {
@@ -136,6 +145,10 @@ class CrudController extends BaseController
 
     public function update(Request $request, $aId)
     {
+        if (empty($this->permissions[$aId === 0 ? 'create' : 'update'])) {
+            abort(403);
+        }
+
         $rules = [
             'email'  => 'email|unique:usuarios',
             'nombre' => 'numeric',
@@ -243,6 +256,10 @@ class CrudController extends BaseController
 
     public function destroy(Request $request, $aId)
     {
+        if (empty($this->permissions['destroy'])) {
+            abort(403);
+        }
+
         $this->model->destroy($aId);
 
         return response()->json('ok');
