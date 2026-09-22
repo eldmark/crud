@@ -64,9 +64,7 @@ class CrudController extends BaseController
     public function show(Request $request, $aId)
     {
         $data = $this->model->find(Crypt::decrypt($aId));
-        if ($request->expectsJson()) {
-            return response()->json($data);
-        }
+        return response()->json($data);
     }
 
     public function edit(Request $request, $aId)
