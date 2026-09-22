@@ -162,8 +162,6 @@ class CrudController extends BaseController
             }
         }
 
-        \Log::warning($rules);
-        \Log::info($request->all());
         if (!empty($rules)) {
             $request->validate($rules);
         }
