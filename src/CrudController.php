@@ -11,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CrudController extends BaseController
 {
@@ -196,8 +197,16 @@ class CrudController extends BaseController
             if (($campo['tipo'] == 'file') || ($campo['tipo'] == 'image')) {
                 if ($request->hasFile($campo['campo'])) {
                     $file = $request->file($campo['campo']);
+                    $extension = strtolower($file->getClientOriginalExtension());
 
-                    $filename = date('Ymdhis').mt_rand(1, 1000).'.'.strtolower($file->getClientOriginalExtension());
+                    $extensionesPermitidas = config('csgtcrud.extensiones_permitidas');
+                    if (is_array($extensionesPermitidas) && ! in_array($extension, array_map('strtolower', $extensionesPermitidas))) {
+                        throw ValidationException::withMessages([
+                            $campo['campo'] => [trans('csgtcrud::crud.extensionnopermitida')],
+                        ]);
+                    }
+
+                    $filename = date('Ymdhis').mt_rand(1, 1000).'.'.$extension;
                     $path = public_path().$campo['filepath'];
 
                     if (! file_exists($path)) {

@@ -6,6 +6,7 @@ return [
     'cancelar' => 'Cancel',
     'editar' => 'Edit',
     'eliminar' => 'Delete',
+    'extensionnopermitida' => 'File extension not allowed',
     'filtrar' => 'Filter',
     'guardar' => 'Save',
     'limpiar' => 'Clear',

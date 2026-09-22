@@ -29,4 +29,22 @@ return [
      */
 
     'stateDuration' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Extensiones permitidas
+    |--------------------------------------------------------------------------
+    |
+    | Lista blanca de extensiones (en minúscula, sin punto) aceptadas al
+    | subir archivos con los campos tipo file e image. Por defecto es null,
+    | lo que significa que no se aplica ninguna restricción y se preserva
+    | el comportamiento actual. Para activar la validación, definir un
+    | arreglo, por ejemplo:
+    | ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'doc', 'docx',
+    |  'xls', 'xlsx', 'csv', 'txt', 'zip']
+    |
+    |
+     */
+
+    'extensiones_permitidas' => null,
 ];
