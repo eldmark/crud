@@ -203,6 +203,27 @@
             </div>
         </div>
     </form>
+    {{-- Este bloque vive en la seccion de contenido, que siempre se renderiza
+         porque aqui esta la tabla. Si el layout de la aplicacion no rinde
+         @@yield('javascript'), el bloque de scripts nunca corre y la vista queda
+         muerta sin decir por que: el guard de dependencias esta alla adentro y
+         tampoco llega a ejecutarse. --}}
+    <script>
+        window.addEventListener('load', function() {
+            if (window.csgtCrudBooted) {
+                return;
+            }
+            var message = typeof window.jQuery === 'undefined' ?
+                'csgt/crud: falta la libreria jQuery, que esta vista necesita.' :
+                'csgt/crud: el bloque de scripts de esta vista no llego a ejecutarse. Revise que el layout rinda @@yield(\'javascript\').';
+            var banner = document.createElement('div');
+            banner.setAttribute('style',
+                'background:#b00020;color:#fff;padding:12px;font-family:sans-serif;font-size:14px');
+            banner.textContent = message;
+            document.body.insertBefore(banner, document.body.firstChild);
+            console.error(message);
+        });
+    </script>
 @endsection
 
 @section('javascript')
@@ -300,5 +321,8 @@
                 })
             });
         });
+        // Lo ultimo del bloque: si algo de arriba corto, la bandera no se setea
+        // y el backstop de la seccion de contenido avisa.
+        window.csgtCrudBooted = true;
     </script>
 @endsection
