@@ -6,6 +6,7 @@ use Storage;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -943,8 +944,13 @@ class CrudController extends BaseController
             dd('Para el tipo securefile hay que especifiarle el filedisk');
         }
 
-        if ($tipo == 'enum' && count($enumarray) == 0) {
-            dd('Para el tipo enum el enumarray es requerido');
+        if ($tipo == 'enum' && (!is_array($enumarray) || count($enumarray) == 0)) {
+            // No se aborta la peticion: antes de que esta validacion corriera, un enum sin
+            // opciones renderizaba un select vacio y la aplicacion seguia funcionando. Se
+            // conserva ese comportamiento y solo se deja constancia en el log. El is_array()
+            // es necesario porque en PHP 8 un count() sobre un no-array es un TypeError fatal.
+            Log::warning('csgtcrud: el campo "' . $aParams['field'] . '" es de tipo enum y no tiene un enumarray valido; se renderiza un select vacio.');
+            $enumarray = [];
         }
 
         if (!strpos($aParams['field'], ')')) {
