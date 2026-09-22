@@ -276,6 +276,34 @@ class CrudControllerTest extends TestCase
         $this->assertSame([], $query->getBindings());
     }
 
+    /*==================== resolveLength ====================*/
+
+    public function testResolveLengthUsesTheRawRequestLengthWhenNoMaximumIsConfigured()
+    {
+        // csgtcrud.max_page_length is null by default: this preserves the
+        // historical behaviour of trusting the client's "length" as-is.
+        $this->assertSame(9999999, $this->call($this->controller, 'resolveLength', [9999999]));
+        $this->assertSame(0, $this->call($this->controller, 'resolveLength', [0]));
+    }
+
+    public function testResolveLengthClampsToTheConfiguredMaximum()
+    {
+        TestConfig::set('csgtcrud.max_page_length', 100);
+
+        $length = $this->call($this->controller, 'resolveLength', [9999999]);
+
+        $this->assertSame(100, $length);
+        $this->assertStringContainsString('limit 100', $this->query()->limit($length)->toSql());
+    }
+
+    public function testResolveLengthFallsBackToPerPageForAZeroOrNegativeLengthWhenAMaximumIsConfigured()
+    {
+        TestConfig::set('csgtcrud.max_page_length', 100);
+
+        $this->assertSame(50, $this->call($this->controller, 'resolveLength', [0]));
+        $this->assertSame(50, $this->call($this->controller, 'resolveLength', [-5]));
+    }
+
     /*==================== setField / enum guard ====================*/
 
     public function testSetFieldNormalizesAMissingNullOrNonArrayEnumarrayWithoutThrowing()
